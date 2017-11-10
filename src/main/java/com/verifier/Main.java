@@ -21,6 +21,9 @@ import com.verifier.parser.Parser;
  */
 public class Main {
 
+	// private static String DOT = "/usr/bin/dot"; // Linux
+	private static String DOT = "C:/Program Files (x86)/Graphviz2.38/bin/dot.exe"; // Windows
+
 	public static void main(String argv[]) {
 
 		Main main = new Main();
@@ -132,12 +135,18 @@ public class Main {
 				if (tree != null) {
 					cfgGen.visit((Program) tree);
 					Graph g = cfgGen.getG();
-					PrintWriter writer = new PrintWriter(getFileName(argv[i]) + ".gv", "UTF-8");
+
+					String dot = getFileName(argv[i]) + ".gv";
+					String png = getFileName(argv[i]) + ".png";
+					PrintWriter writer = new PrintWriter(dot, "UTF-8");
 					writer.println(g.getDotSrc());
 					writer.close();
 					System.out.println("Generated output file");
 
 					Runtime rt = Runtime.getRuntime();
+					String[] args = { DOT, "-Tpng", dot, "-o", png };
+					Process proc = rt.exec(args);
+					proc.waitFor();
 				}
 
 			} catch (ParseException e) {
