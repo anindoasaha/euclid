@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import com.verifier.ast.Program;
 import com.verifier.ast.Tree;
 import com.verifier.graph.CntrlFlowGen;
+import com.verifier.graph.Edge;
 import com.verifier.graph.Graph;
 import com.verifier.lexer.JSymbol;
 import com.verifier.lexer.Lexer;
@@ -19,181 +20,218 @@ import com.verifier.parser.Parser;
  * Simple test driver for the java lexer. Just runs it on some input files and
  * produces debug output. Needs symbol class from parser.
  */
-public class Main {
+public class Main
+{
 
-	public static void main(String argv[]) {
+    public static void main(String argv[]) {
 
-		Main main = new Main();
+        Main main = new Main();
 
-		if (argv.length < 2) {
-			System.err.println("USAGE: java eminijava.Main <OPTION> <FILENAME>");
-			System.exit(1);
-		}
+        if (argv.length < 2) {
+            System.err.println("USAGE: java eminijava.Main <OPTION> <FILENAME>");
+            System.exit(1);
+        }
 
-		switch (argv[0]) {
-		case "--lex": {
-			main.lex(argv);
-		}
-			break;
-		case "--ast": {
-			main.parse(argv);
-		}
-			break;
+        switch (argv[0]) {
+            case "--lex": {
+                main.lex(argv);
+            }
+            break;
+            case "--ast": {
+                main.parse(argv);
+            }
+            break;
 
-		case "-c": {
-			main.genCfg(argv);
-		}
-			break;
+            case "-c": {
+                main.genCfg(argv);
+                main.genHorn(argv);
+            }
+            break;
+            case "-h": {
+                main.genHorn(argv);
+            }
+            break;
 
-		default: {
-			System.err.println("Invalid option " + argv[0]);
-		}
+            default: {
+                System.err.println("Invalid option " + argv[0]);
+            }
 
-		}
+        }
 
-	}
+    }
 
-	public void lex(String[] argv) {
+    public void lex(String[] argv) {
 
-		for (int i = 1; i < argv.length; i++) {
+        for (int i = 1; i < argv.length; i++) {
 
-			try {
+            try {
 
-				if (!isFileValid(argv[i])) {
-					continue;
-				}
+                if (!isFileValid(argv[i])) {
+                    continue;
+                }
 
-				System.out.println("Lexing file [" + argv[i] + "]");
-				Lexer lexer = new Lexer(new FileReader(argv[i]));
-				PrintWriter writer = new PrintWriter(getFileName(argv[i]) + ".lexed", "UTF-8");
+                System.out.println("Lexing file [" + argv[i] + "]");
+                Lexer lexer = new Lexer(new FileReader(argv[i]));
+                PrintWriter writer = new PrintWriter(getFileName(argv[i]) + ".lexed", "UTF-8");
 
-				JSymbol s;
-				do {
-					s = lexer.yylex();
-					writer.println(s);
-				} while (s.token != Token.EOF);
+                JSymbol s;
+                do {
+                    s = lexer.yylex();
+                    writer.println(s);
+                } while (s.token != Token.EOF);
 
-				writer.close();
-			} catch (Exception e) {
-				e.printStackTrace(System.out);
-				System.exit(1);
-			}
-			System.out.println("Generated output file");
-		}
+                writer.close();
+            } catch (Exception e) {
+                e.printStackTrace(System.out);
+                System.exit(1);
+            }
+            System.out.println("Generated output file");
+        }
 
-	}
+    }
 
-	public void parse(String argv[]) {
-		ASTPrinter printer = new ASTPrinter();
-		for (int i = 1; i < argv.length; i++) {
-			try {
+    public void parse(String argv[]) {
+        ASTPrinter printer = new ASTPrinter();
+        for (int i = 1; i < argv.length; i++) {
+            try {
 
-				if (!isFileValid(argv[i])) {
-					continue;
-				}
+                if (!isFileValid(argv[i])) {
+                    continue;
+                }
 
-				System.out.println("Parsing file [" + argv[i] + "]");
+                System.out.println("Parsing file [" + argv[i] + "]");
 
-				Lexer lexer = new Lexer(new FileReader(argv[i]));
-				Parser p = new Parser(lexer);
-				Tree tree = p.parse();
-				if (tree != null) {
-					String sexpr = printer.visit((Program) tree);
-					PrintWriter writer = new PrintWriter(getFileName(argv[i]) + ".ast", "UTF-8");
-					writer.println(sexpr);
-					writer.close();
-					System.out.println("Generated output file");
-				}
+                Lexer lexer = new Lexer(new FileReader(argv[i]));
+                Parser p = new Parser(lexer);
+                Tree tree = p.parse();
+                if (tree != null) {
+                    String sexpr = printer.visit((Program) tree);
+                    PrintWriter writer = new PrintWriter(getFileName(argv[i]) + ".ast", "UTF-8");
+                    writer.println(sexpr);
+                    writer.close();
+                    System.out.println("Generated output file");
+                }
 
-			} catch (ParseException e) {
-				System.err.println(e.getMessage());
-				System.exit(1);
-			} catch (Exception e) {
-				e.printStackTrace();
-				System.exit(1);
-			}
-		}
-	}
+            } catch (ParseException e) {
+                System.err.println(e.getMessage());
+                System.exit(1);
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }
+    }
 
-	public void genCfg(String argv[]) {
-		CntrlFlowGen cfgGen = new CntrlFlowGen();
-		for (int i = 1; i < argv.length; i++) {
-			try {
+    public void genCfg(String argv[]) {
+        CntrlFlowGen cfgGen = new CntrlFlowGen();
+        for (int i = 1; i < argv.length; i++) {
+            try {
 
-				if (!isFileValid(argv[i])) {
-					continue;
-				}
+                if (!isFileValid(argv[i])) {
+                    continue;
+                }
 
-				System.out.println("Parsing file [" + argv[i] + "]");
+                System.out.println("Parsing file [" + argv[i] + "]");
 
-				Lexer lexer = new Lexer(new FileReader(argv[i]));
-				Parser p = new Parser(lexer);
-				Tree tree = p.parse();
-				if (tree != null) {
-					cfgGen.visit((Program) tree);
-					Graph g = cfgGen.getG();
-					PrintWriter writer = new PrintWriter(getFileName(argv[i]) + ".gv", "UTF-8");
-					writer.println(g.getDotSrc());
-					writer.close();
-					System.out.println("Generated output file");
+                Lexer lexer = new Lexer(new FileReader(argv[i]));
+                Parser p = new Parser(lexer);
+                Tree tree = p.parse();
+                if (tree != null) {
+                    cfgGen.visit((Program) tree);
+                    Graph g = cfgGen.getG();
+                    PrintWriter writer = new PrintWriter(getFileName(argv[i]) + ".gv", "UTF-8");
+                    writer.println(g.getDotSrc());
+                    writer.close();
+                    System.out.println("Generated output file");
 
-					Runtime rt = Runtime.getRuntime();
-				}
+                    Runtime rt = Runtime.getRuntime();
+                }
 
-			} catch (ParseException e) {
-				System.err.println(e.getMessage());
-				System.exit(1);
-			} catch (Exception e) {
-				e.printStackTrace();
-				System.exit(1);
-			}
-		}
-	}
+            } catch (ParseException e) {
+                System.err.println(e.getMessage());
+                System.exit(1);
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }
+    }
 
-	private boolean isFileValid(String filename) {
-		File f = new File(filename);
+    public void genHorn(String argv[]) {
+        CntrlFlowGen cfgGen = new CntrlFlowGen();
+        for (int i = 1; i < argv.length; i++) {
+            try {
 
-		if (!f.exists()) {
-			System.err.println(filename + ": No such file!");
-			return false;
-		}
+                if (!isFileValid(argv[i])) {
+                    continue;
+                }
 
-		String fileExtension = getFileExtension(f);
-		if (!"imp".equals(fileExtension)) {
-			System.err.println(filename + ": Invalid file extension!");
-			return false;
-		}
+                System.out.println("Parsing file [" + argv[i] + "]");
 
-		return true;
-	}
+                Lexer lexer = new Lexer(new FileReader(argv[i]));
+                Parser p = new Parser(lexer);
+                Tree tree = p.parse();
+                if (tree != null) {
+                    cfgGen.visit((Program) tree);
+                    Graph g = cfgGen.getG();
+                    //System.out.println("Generated horn clauses");
+                    g.getHornClauses();
+                }
 
-	private String getFileExtension(File file) {
-		String name = file.getName();
-		try {
-			return name.substring(name.lastIndexOf(".") + 1);
-		} catch (Exception e) {
-			return "";
-		}
-	}
+            } catch (ParseException e) {
+                System.err.println(e.getMessage());
+                System.exit(1);
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }
+    }
 
-	private String getFileName(String filename) {
-		try {
-			return filename.substring(0, filename.lastIndexOf("."));
-		} catch (Exception e) {
-			return "";
-		}
-	}
+    private boolean isFileValid(String filename) {
+        File f = new File(filename);
 
-	private String getFileDirPath(String filename) {
-		try {
-			File f = new File(filename);
-			String path = f.getParent();
-			if (path == null) {
-				return "";
-			}
-			return path + File.separator;
-		} catch (Exception e) {
-			return "";
-		}
-	}
+        if (!f.exists()) {
+            System.err.println(filename + ": No such file!");
+            return false;
+        }
+
+        String fileExtension = getFileExtension(f);
+        if (!"imp".equals(fileExtension)) {
+            System.err.println(filename + ": Invalid file extension!");
+            return false;
+        }
+
+        return true;
+    }
+
+    private String getFileExtension(File file) {
+        String name = file.getName();
+        try {
+            return name.substring(name.lastIndexOf(".") + 1);
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    private String getFileName(String filename) {
+        try {
+            return filename.substring(0, filename.lastIndexOf("."));
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    private String getFileDirPath(String filename) {
+        try {
+            File f = new File(filename);
+            String path = f.getParent();
+            if (path == null) {
+                return "";
+            }
+            return path + File.separator;
+        } catch (Exception e) {
+            return "";
+        }
+    }
 }

@@ -7,6 +7,7 @@ public class Node {
 
 	private int id;
 	private List<Node> nxtNodes = new ArrayList<Node>();
+	public boolean isError = false;
 
 	public Node(int id) {
 		this.id = id;

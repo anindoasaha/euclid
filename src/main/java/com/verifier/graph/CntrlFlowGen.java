@@ -56,6 +56,7 @@ public class CntrlFlowGen implements Visitor<Node>
         g.addEdge(e);
 
         Node errorNode = g.createNode();
+        errorNode.isError = true;
         Assert error = new Assert(assert1.getSymbol(), new Not(assert1.getSymbol(), assert1.getExpr(), true));
         Edge errorEdge = new Edge(src, errorNode, error);
         g.addEdge(errorEdge);
