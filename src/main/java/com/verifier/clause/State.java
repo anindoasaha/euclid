@@ -27,7 +27,7 @@ public class State implements Term
         this.on = new TreeSet<>(on);
     }
 
-    private State(String id, Set<String> on) {
+    public State(String id, Set<String> on) {
         this.id = id;
         this.on = new TreeSet<>(on);
     }

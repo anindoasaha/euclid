@@ -95,6 +95,8 @@ public class Graph
         Map<Node, Consequent> nodeConsequentMap = new HashMap<Node, Consequent>();
         Antecedent lhsClause0 = new Antecedent();
         lhsClause0.term(Predicate.TRUE);
+        Set<String> q0 = new TreeSet<>(State.variables);
+        lhsClause0.quantifiers(q0);
 
         Consequent rhsClause0 = new Consequent();
         assertions.put(lhsClause0, rhsClause0);
@@ -116,9 +118,17 @@ public class Graph
 
             Set<String> on = new TreeSet<>();
             on.addAll(quantifiers.values());
-            Consequent rhsClause = nodeConsequentMap.getOrDefault(e.getDst(), new Consequent(e.getDst().isError ? Predicate.FALSE : new State(on)) /*Or false if assertion fails*/);
-
-            declareFunctions.add(rhsClause);
+            Consequent rhsClause =
+                    nodeConsequentMap.getOrDefault(e.getDst(), new Consequent(e.getDst().isError ? Predicate.FALSE : new State(on)));
+            if (nodeConsequentMap.get(e.getDst()) != null) {
+                Consequent consequent = nodeConsequentMap.get(e.getDst());
+                if (consequent.term instanceof State) {
+                    rhsClause = new Consequent(new State(((State) consequent.term).id, on));
+                }
+            } else {
+                declareFunctions.add(rhsClause);
+            }
+            // Create new rhsClause with on variables from rhsClause
             assertions.put(lhsClause, rhsClause);
             nodeConsequentMap.put(e.getDst(), rhsClause);
         }
@@ -163,14 +173,16 @@ public class Graph
                     stringBuilder.append(" ");
                 i++;
             }
+            // forall in
             stringBuilder.append(") ");
-            stringBuilder.append(((State) value.term).toString());
+            stringBuilder.append((value.term).toString());
             stringBuilder.append(")");
             stringBuilder.append(")");
             stringBuilder.append(")");
             stringBuilder.append("\n");
         }
-
+        stringBuilder.append("(check-sat)\n");
+        stringBuilder.append("(exit)\n");
         System.out.println(stringBuilder.toString());
     }
 

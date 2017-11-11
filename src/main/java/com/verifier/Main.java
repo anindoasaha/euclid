@@ -17,6 +17,8 @@ import com.verifier.parser.ParseException;
 import com.verifier.parser.Parser;
 
 /**
+ * @author Bhavin Shah, Anindo Saha
+ *
  * Simple test driver for the java lexer. Just runs it on some input files and
  * produces debug output. Needs symbol class from parser.
  */
@@ -44,7 +46,7 @@ public class Main
 
             case "-c": {
                 main.genCfg(argv);
-                main.genHorn(argv);
+                //main.genHorn(argv);
             }
             break;
             case "-h": {
@@ -99,7 +101,7 @@ public class Main
                     continue;
                 }
 
-                System.out.println("Parsing file [" + argv[i] + "]");
+                //System.out.println("Parsing file [" + argv[i] + "]");
 
                 Lexer lexer = new Lexer(new FileReader(argv[i]));
                 Parser p = new Parser(lexer);
@@ -166,7 +168,7 @@ public class Main
                     continue;
                 }
 
-                System.out.println("Parsing file [" + argv[i] + "]");
+                //System.out.println("Parsing file [" + argv[i] + "]");
 
                 Lexer lexer = new Lexer(new FileReader(argv[i]));
                 Parser p = new Parser(lexer);
